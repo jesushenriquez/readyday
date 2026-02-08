@@ -1,0 +1,127 @@
+name: ReadyDay
+options:
+  bundleIdPrefix: com.readyday
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "16.2"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: 1
+    TARGETED_DEVICE_FAMILY: 1
+    INFOPLIST_KEY_CFBundleDisplayName: ReadyDay
+    INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.healthcare-fitness"
+
+configs:
+  Debug: debug
+  Release: release
+
+targets:
+  ReadyDay:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+      - path: Core
+      - path: Domain
+      - path: Data
+      - path: Presentation
+      - path: Resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.readyday.app
+        INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription: "ReadyDay reads your calendar to analyze your day's energy demands and suggest optimal scheduling."
+        INFOPLIST_KEY_NSCalendarsUsageDescription: "ReadyDay reads your calendar to analyze your day's energy demands and suggest optimal scheduling."
+        INFOPLIST_KEY_UILaunchScreen_Generation: true
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        SUPABASE_URL: "$(SUPABASE_URL)"
+        SUPABASE_ANON_KEY: "$(SUPABASE_ANON_KEY)"
+        WHOOP_CLIENT_ID: "$(WHOOP_CLIENT_ID)"
+        WHOOP_CLIENT_SECRET: "$(WHOOP_CLIENT_SECRET)"
+        WHOOP_REDIRECT_URI: "$(WHOOP_REDIRECT_URI)"
+        POSTHOG_API_KEY: "$(POSTHOG_API_KEY)"
+        POSTHOG_HOST: "$(POSTHOG_HOST)"
+        ENVIRONMENT: "$(ENVIRONMENT)"
+      configs:
+        Debug:
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+          OTHER_SWIFT_FLAGS: "-Xfrontend -enable-actor-data-race-checks"
+        Release:
+          SWIFT_COMPILATION_MODE: wholemodule
+          SWIFT_OPTIMIZATION_LEVEL: "-O"
+    info:
+      path: Resources/Info.plist
+      properties:
+        UILaunchScreen: {}
+        CFBundleURLTypes:
+          - CFBundleURLName: "com.readyday.oauth"
+            CFBundleURLSchemes:
+              - readyday
+        SUPABASE_URL: "$(SUPABASE_URL)"
+        SUPABASE_ANON_KEY: "$(SUPABASE_ANON_KEY)"
+        WHOOP_CLIENT_ID: "$(WHOOP_CLIENT_ID)"
+        WHOOP_CLIENT_SECRET: "$(WHOOP_CLIENT_SECRET)"
+        WHOOP_REDIRECT_URI: "$(WHOOP_REDIRECT_URI)"
+        POSTHOG_API_KEY: "$(POSTHOG_API_KEY)"
+        POSTHOG_HOST: "$(POSTHOG_HOST)"
+        ENVIRONMENT: "$(ENVIRONMENT)"
+    dependencies:
+      - package: Supabase
+        product: Supabase
+      - package: PostHog
+        product: PostHog
+
+  ReadyDayTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests/UnitTests
+    dependencies:
+      - target: ReadyDay
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.readyday.tests
+        GENERATE_INFOPLIST_FILE: true
+
+  ReadyDayUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Tests/UITests
+    dependencies:
+      - target: ReadyDay
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.readyday.uitests
+        GENERATE_INFOPLIST_FILE: true
+
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: "2.0.0"
+  PostHog:
+    url: https://github.com/PostHog/posthog-ios
+    from: "3.0.0"
+
+schemes:
+  ReadyDay:
+    build:
+      targets:
+        ReadyDay: all
+        ReadyDayTests: [test]
+        ReadyDayUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - ReadyDayTests
+        - ReadyDayUITests
+    archive:
+      config: Release
