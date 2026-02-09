@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SettingsView: View {
-    let viewModel: SettingsViewModel
+    @Bindable var viewModel: SettingsViewModel
 
     var body: some View {
         List {
@@ -11,9 +11,17 @@ struct SettingsView: View {
                         .foregroundStyle(Color.rdPrimary)
                     Text("Whoop")
                     Spacer()
-                    Text(viewModel.isWhoopConnected ? "Connected" : "Not connected")
+                    if viewModel.isWhoopConnected {
+                        Button("Disconnect") {
+                            Task { await viewModel.disconnectWhoop() }
+                        }
                         .font(.rdCaptionLarge)
-                        .foregroundStyle(Color.rdTextSecondary)
+                        .foregroundStyle(Color.rdRecoveryRed)
+                    } else {
+                        Text("Not connected")
+                            .font(.rdCaptionLarge)
+                            .foregroundStyle(Color.rdTextSecondary)
+                    }
                 }
 
                 HStack {
@@ -34,6 +42,15 @@ struct SettingsView: View {
                 ))
                 .tint(.rdPrimary)
 
+                if viewModel.morningBriefingEnabled {
+                    DatePicker(
+                        "Briefing Time",
+                        selection: $viewModel.morningBriefingDate,
+                        displayedComponents: .hourAndMinute
+                    )
+                    .tint(.rdPrimary)
+                }
+
                 Toggle("Pre-meeting Alerts", isOn: Binding(
                     get: { viewModel.preMeetingAlertsEnabled },
                     set: { viewModel.togglePreMeetingAlerts($0) }
@@ -51,13 +68,36 @@ struct SettingsView: View {
             }
 
             Section {
+                Button("Sign Out") {
+                    viewModel.showSignOutConfirmation = true
+                }
+                .foregroundStyle(Color.rdPrimary)
+            }
+
+            Section {
                 Button("Delete Account") {
-                    Task { await viewModel.deleteAccount() }
+                    viewModel.showDeleteConfirmation = true
                 }
                 .foregroundStyle(Color.rdRecoveryRed)
             }
         }
         .navigationTitle("Settings")
         .task { await viewModel.loadSettings() }
+        .alert("Sign Out", isPresented: $viewModel.showSignOutConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Sign Out", role: .destructive) {
+                Task { await viewModel.signOut() }
+            }
+        } message: {
+            Text("Are you sure you want to sign out?")
+        }
+        .alert("Delete Account", isPresented: $viewModel.showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                Task { await viewModel.deleteAccount() }
+            }
+        } message: {
+            Text("This will permanently delete your account and all data. This action cannot be undone.")
+        }
     }
 }

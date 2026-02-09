@@ -412,6 +412,10 @@ Antes de cada release:
 - 30-day historical trends
 - Weekly digest notification con resumen semanal
 - Break suggestion notification (despues de 3h+ de reuniones)
+- Calendar selector: elegir que calendarios incluir en el briefing (US-022)
+- Data export: exportar datos del usuario en JSON (US-024)
+- Contenido personalizado en morning notification (requiere Notification Service Extension para mostrar recovery score)
+- Server-side account deletion via Supabase Edge Function (actualmente solo limpia datos locales)
 - Bug fixes basados en feedback v1.0
 
 ### v1.2 - Model D: RestoreAI Integration (6 semanas)

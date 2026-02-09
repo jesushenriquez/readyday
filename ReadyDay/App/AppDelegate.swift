@@ -7,7 +7,6 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
-        // TODO: Configure push notifications
         UNUserNotificationCenter.current().delegate = self
         return true
     }
@@ -40,6 +39,11 @@ extension AppDelegate: @preconcurrency UNUserNotificationCenterDelegate {
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse
     ) async {
-        // TODO: Handle notification tap — deep link to briefing
+        let identifier = response.notification.request.identifier
+        if identifier == NotificationService.morningBriefingIdentifier {
+            await MainActor.run {
+                NotificationCenter.default.post(name: .navigateToBriefing, object: nil)
+            }
+        }
     }
 }

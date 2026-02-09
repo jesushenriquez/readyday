@@ -4,6 +4,8 @@ import Foundation
 
 extension Notification.Name {
     static let onboardingCompleted = Notification.Name("com.readyday.onboardingCompleted")
+    static let userDidSignOut = Notification.Name("com.readyday.userDidSignOut")
+    static let navigateToBriefing = Notification.Name("com.readyday.navigateToBriefing")
 }
 
 // MARK: - ViewModel

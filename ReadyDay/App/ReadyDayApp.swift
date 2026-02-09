@@ -2,6 +2,7 @@ import SwiftUI
 
 @main
 struct ReadyDayApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var container = DependencyContainer()
 
     var body: some Scene {
@@ -24,7 +25,6 @@ struct ContentView: View {
     }
 
     init() {
-        // Check if onboarding is completed
         let completed = UserDefaults.standard.bool(forKey: UserDefaultsService.Key.onboardingCompleted)
         _showOnboarding = State(initialValue: !completed)
     }
@@ -37,6 +37,15 @@ struct ContentView: View {
                 }
         } else {
             mainTabView
+                .onReceive(NotificationCenter.default.publisher(for: .userDidSignOut)) { _ in
+                    showOnboarding = true
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .navigateToBriefing)) { _ in
+                    selectedTab = .today
+                }
+                .task {
+                    await scheduleMorningBriefingIfEnabled()
+                }
         }
     }
 
@@ -46,6 +55,16 @@ struct ContentView: View {
                 NavigationStack {
                     BriefingView(viewModel: container.briefingViewModel)
                         .navigationTitle("ReadyDay")
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                NavigationLink {
+                                    SettingsView(viewModel: container.settingsViewModel)
+                                } label: {
+                                    Image(systemName: "gearshape")
+                                        .foregroundStyle(Color.rdTextSecondary)
+                                }
+                            }
+                        }
                 }
             }
 
@@ -64,6 +83,17 @@ struct ContentView: View {
             }
         }
         .tint(.rdPrimary)
+    }
+
+    private func scheduleMorningBriefingIfEnabled() async {
+        let userDefaults = container.userDefaultsService
+        let enabled = userDefaults.bool(for: UserDefaultsService.Key.morningBriefingEnabled)
+        guard enabled else { return }
+
+        let hour = userDefaults.integer(for: UserDefaultsService.Key.morningBriefingHour)
+        let minute = userDefaults.integer(for: UserDefaultsService.Key.morningBriefingMinute)
+        let time = DateComponents(hour: hour, minute: minute)
+        try? await container.notificationService.scheduleMorningBriefing(at: time)
     }
 }
 

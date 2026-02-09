@@ -9,6 +9,8 @@ final class DependencyContainer {
     let keychainService: KeychainService
     let supabaseManager: SupabaseManager
     let calendarService: CalendarService
+    let notificationService: NotificationService
+    let userDefaultsService: UserDefaultsService
 
     // MARK: - Network Services
 
@@ -43,6 +45,8 @@ final class DependencyContainer {
         keychainService = KeychainService()
         supabaseManager = SupabaseManager.shared
         calendarService = CalendarService()
+        notificationService = NotificationService()
+        userDefaultsService = UserDefaultsService()
 
         // Network Services
         whoopOAuthManager = WhoopOAuthManager(keychainService: keychainService)
@@ -55,7 +59,7 @@ final class DependencyContainer {
         // Repositories
         userRepository = UserRepositoryImpl(
             supabaseManager: supabaseManager,
-            userDefaults: UserDefaultsService()
+            userDefaults: userDefaultsService
         )
         whoopRepository = WhoopRepositoryImpl(
             apiClient: whoopAPIClient,
@@ -97,7 +101,14 @@ final class DependencyContainer {
             userRepository: userRepository,
             whoopRepository: whoopRepository
         )
-        settingsViewModel = SettingsViewModel()
+        settingsViewModel = SettingsViewModel(
+            notificationService: notificationService,
+            userDefaults: userDefaultsService,
+            whoopOAuthManager: whoopOAuthManager,
+            calendarService: calendarService,
+            authManager: authManager,
+            userRepository: userRepository
+        )
         workoutFinderViewModel = WorkoutFinderViewModel()
     }
 }
