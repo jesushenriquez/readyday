@@ -20,6 +20,8 @@ final class UserRepositoryImpl: UserRepository, @unchecked Sendable {
         }
 
         // Look up the user row by auth ID to get the internal user ID
+        // Fall back to the Supabase auth session ID if the users table
+        // isn't set up yet or the row doesn't exist
         do {
             let response = try await supabaseManager.client
                 .from("users")
@@ -34,9 +36,9 @@ final class UserRepositoryImpl: UserRepository, @unchecked Sendable {
             decoder.keyDecodingStrategy = .convertFromSnakeCase
 
             let users = try decoder.decode([UserRow].self, from: data)
-            return users.first?.id
+            return users.first?.id ?? session.user.id
         } catch {
-            return nil
+            return session.user.id
         }
     }
 

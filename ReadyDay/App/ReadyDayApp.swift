@@ -25,7 +25,7 @@ struct ContentView: View {
 
     init() {
         // Check if onboarding is completed
-        let completed = UserDefaults.standard.bool(forKey: "com.readyday.onboardingCompleted")
+        let completed = UserDefaults.standard.bool(forKey: UserDefaultsService.Key.onboardingCompleted)
         _showOnboarding = State(initialValue: !completed)
     }
 

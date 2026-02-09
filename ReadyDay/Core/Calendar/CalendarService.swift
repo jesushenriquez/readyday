@@ -3,20 +3,36 @@ import Foundation
 
 protocol CalendarServiceProtocol: Sendable {
     func requestAccess() async throws -> Bool
-    func getEvents(for date: Date, calendarIDs: [String]?) -> [EKEvent]
+    func getEvents(for date: Date, calendarIDs: [String]?) async throws -> [EKEvent]
     func getCalendars() -> [EKCalendar]
-    func findGaps(for date: Date, minDuration: TimeInterval) -> [TimeWindow]
+    func findGaps(for date: Date, minDuration: TimeInterval) async throws -> [TimeWindow]
 }
 
 final class CalendarService: CalendarServiceProtocol, @unchecked Sendable {
     private let eventStore = EKEventStore()
 
     func requestAccess() async throws -> Bool {
-        // TODO: Implement full calendar access request in Sprint 1
         try await eventStore.requestFullAccessToEvents()
     }
 
-    func getEvents(for date: Date, calendarIDs: [String]? = nil) -> [EKEvent] {
+    private func ensureFullAccess() async throws {
+        let status = CalendarPermissionStatus.current
+        switch status {
+        case .fullAccess:
+            return
+        case .notDetermined:
+            let granted = try await eventStore.requestFullAccessToEvents()
+            if !granted { throw ReadyDayError.calendarAccessDenied }
+        case .writeOnly, .denied:
+            throw ReadyDayError.calendarAccessDenied
+        case .restricted:
+            throw ReadyDayError.calendarAccessRestricted
+        }
+    }
+
+    func getEvents(for date: Date, calendarIDs: [String]? = nil) async throws -> [EKEvent] {
+        try await ensureFullAccess()
+
         let startOfDay = Calendar.current.startOfDay(for: date)
         guard let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay) else {
             return []
@@ -41,8 +57,8 @@ final class CalendarService: CalendarServiceProtocol, @unchecked Sendable {
         eventStore.calendars(for: .event)
     }
 
-    func findGaps(for date: Date, minDuration: TimeInterval = 3600) -> [TimeWindow] {
-        let events = getEvents(for: date)
+    func findGaps(for date: Date, minDuration: TimeInterval = 3600) async throws -> [TimeWindow] {
+        let events = try await getEvents(for: date)
 
         // Define working hours (8 AM - 10 PM)
         let startOfDay = Calendar.current.startOfDay(for: date)

@@ -25,6 +25,9 @@ final class DependencyContainer {
     // MARK: - Use Cases
 
     let classifyEventDemandUseCase: ClassifyEventDemandUseCase
+    let findWorkoutWindowUseCase: FindWorkoutWindowUseCase
+    let generateBriefingUseCase: GenerateBriefingUseCase
+    let syncWhoopDataUseCase: SyncWhoopDataUseCase
 
     // MARK: - ViewModels
 
@@ -64,18 +67,29 @@ final class DependencyContainer {
 
         // Use Cases
         classifyEventDemandUseCase = ClassifyEventDemandUseCase()
+        findWorkoutWindowUseCase = FindWorkoutWindowUseCase(calendarRepo: calendarRepository)
+        generateBriefingUseCase = GenerateBriefingUseCase(
+            whoopRepo: whoopRepository,
+            calendarRepo: calendarRepository,
+            classifyDemand: classifyEventDemandUseCase,
+            findWorkoutWindow: findWorkoutWindowUseCase
+        )
+        syncWhoopDataUseCase = SyncWhoopDataUseCase(whoopRepo: whoopRepository)
 
         // ViewModels
         briefingViewModel = BriefingViewModel(
-            whoopRepository: whoopRepository,
-            calendarRepository: calendarRepository,
-            classifyEventDemandUseCase: classifyEventDemandUseCase
+            generateBriefingUseCase: generateBriefingUseCase,
+            syncWhoopDataUseCase: syncWhoopDataUseCase,
+            userRepository: userRepository
         )
         timelineViewModel = TimelineViewModel(
             calendarRepository: calendarRepository,
             classifyEventDemandUseCase: classifyEventDemandUseCase
         )
-        dashboardViewModel = DashboardViewModel()
+        dashboardViewModel = DashboardViewModel(
+            whoopRepository: whoopRepository,
+            userRepository: userRepository
+        )
         onboardingViewModel = OnboardingViewModel(
             authManager: authManager,
             whoopOAuthManager: whoopOAuthManager,

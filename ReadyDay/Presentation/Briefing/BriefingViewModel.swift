@@ -6,15 +6,16 @@ final class BriefingViewModel {
 
     // MARK: - Dependencies
 
-    private let whoopRepository: WhoopRepository
-    private let calendarRepository: CalendarRepository
-    private let classifyEventDemandUseCase: ClassifyEventDemandUseCase
+    private let generateBriefingUseCase: GenerateBriefingUseCase
+    private let syncWhoopDataUseCase: SyncWhoopDataUseCase
+    private let userRepository: UserRepository
 
     // MARK: - State
 
     private(set) var briefing: DayBriefing?
     private(set) var isLoading = false
     private(set) var error: ReadyDayError?
+    private var hasSynced = false
 
     var hasError: Bool { error != nil }
     var recoveryScore: Int { briefing?.recoveryScore ?? 0 }
@@ -28,13 +29,13 @@ final class BriefingViewModel {
     // MARK: - Initialization
 
     init(
-        whoopRepository: WhoopRepository,
-        calendarRepository: CalendarRepository,
-        classifyEventDemandUseCase: ClassifyEventDemandUseCase
+        generateBriefingUseCase: GenerateBriefingUseCase,
+        syncWhoopDataUseCase: SyncWhoopDataUseCase,
+        userRepository: UserRepository
     ) {
-        self.whoopRepository = whoopRepository
-        self.calendarRepository = calendarRepository
-        self.classifyEventDemandUseCase = classifyEventDemandUseCase
+        self.generateBriefingUseCase = generateBriefingUseCase
+        self.syncWhoopDataUseCase = syncWhoopDataUseCase
+        self.userRepository = userRepository
     }
 
     // MARK: - Actions
@@ -44,13 +45,31 @@ final class BriefingViewModel {
         isLoading = true
         error = nil
 
-        // TODO: Inject and call GenerateBriefingUseCase in Sprint 1
-        // For now, show empty state
+        do {
+            guard let userId = await userRepository.getCurrentUserId() else {
+                throw ReadyDayError.authenticationFailed
+            }
+
+            do {
+                briefing = try await generateBriefingUseCase.execute(for: Date(), userId: userId)
+            } catch ReadyDayError.noRecoveryData, ReadyDayError.noSleepData {
+                // No data yet — sync from Whoop API and retry once
+                guard !hasSynced else { throw ReadyDayError.noRecoveryData }
+                hasSynced = true
+                try await syncWhoopDataUseCase.execute(userId: userId)
+                briefing = try await generateBriefingUseCase.execute(for: Date(), userId: userId)
+            }
+        } catch let rdError as ReadyDayError {
+            error = rdError
+        } catch {
+            self.error = .unknown(underlying: error.localizedDescription)
+        }
 
         isLoading = false
     }
 
     func refresh() async {
+        hasSynced = false
         await loadBriefing()
     }
 }

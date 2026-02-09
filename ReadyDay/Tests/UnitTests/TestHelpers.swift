@@ -73,3 +73,32 @@ final class MockWhoopRepository: WhoopRepository, @unchecked Sendable {
         return mockWorkouts
     }
 }
+
+// MARK: - Mock UserRepository
+
+final class MockUserRepository: UserRepository, @unchecked Sendable {
+    var mockUserId: UUID? = UUID()
+    var mockOnboardingCompleted = true
+    var mockDisplayName: String? = "Test User"
+    var mockBriefingTime: Date?
+
+    func getCurrentUserId() async -> UUID? {
+        return mockUserId
+    }
+
+    func isOnboardingCompleted() async -> Bool {
+        return mockOnboardingCompleted
+    }
+
+    func setOnboardingCompleted() async throws {}
+
+    func getUserDisplayName() async -> String? {
+        return mockDisplayName
+    }
+
+    func getMorningBriefingTime() async -> Date? {
+        return mockBriefingTime
+    }
+
+    func setMorningBriefingTime(_ time: Date) async throws {}
+}

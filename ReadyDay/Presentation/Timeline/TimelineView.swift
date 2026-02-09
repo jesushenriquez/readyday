@@ -46,6 +46,7 @@ struct TimelineView: View {
             .padding(RDSpacing.sm)
         }
         .background(Color.rdBackground)
+        .refreshable { await viewModel.loadTimeline() }
         .task { await viewModel.loadTimeline() }
     }
 }

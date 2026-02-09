@@ -59,6 +59,14 @@ final class OnboardingViewModel {
 
         do {
             try await authManager.signInWithApple()
+
+            // Returning user: Whoop already connected from a previous install
+            if await whoopOAuthManager.isConnected() {
+                isWhoopConnected = true
+                await completeOnboarding()
+                return
+            }
+
             advance()
         } catch {
             print("[Onboarding] Apple Sign In error: \(error)")

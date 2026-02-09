@@ -37,6 +37,7 @@ struct DashboardView: View {
             .padding(RDSpacing.sm)
         }
         .background(Color.rdBackground)
+        .refreshable { await viewModel.loadDashboard() }
         .task { await viewModel.loadDashboard() }
     }
 }

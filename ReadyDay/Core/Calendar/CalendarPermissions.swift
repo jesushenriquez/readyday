@@ -3,7 +3,8 @@ import Foundation
 
 enum CalendarPermissionStatus: Sendable {
     case notDetermined
-    case authorized
+    case fullAccess
+    case writeOnly
     case denied
     case restricted
 
@@ -11,8 +12,10 @@ enum CalendarPermissionStatus: Sendable {
         switch EKEventStore.authorizationStatus(for: .event) {
         case .notDetermined:
             return .notDetermined
-        case .fullAccess, .writeOnly:
-            return .authorized
+        case .fullAccess:
+            return .fullAccess
+        case .writeOnly:
+            return .writeOnly
         case .denied:
             return .denied
         case .restricted:
@@ -22,7 +25,11 @@ enum CalendarPermissionStatus: Sendable {
         }
     }
 
+    var canReadEvents: Bool {
+        self == .fullAccess
+    }
+
     var isGranted: Bool {
-        self == .authorized
+        self == .fullAccess || self == .writeOnly
     }
 }

@@ -38,7 +38,19 @@ final class TimelineViewModel {
         isLoading = true
         error = nil
 
-        // TODO: Implement in Sprint 1
+        do {
+            let rawEvents = try await calendarRepository.getEvents(for: selectedDate)
+            let classified = classifyEventDemandUseCase.classifyAll(events: rawEvents)
+            let foundGaps = try await calendarRepository.findGaps(for: selectedDate, minDuration: 30 * 60)
+
+            events = classified
+            gaps = foundGaps
+            calendarLoadScore = calculateCalendarLoad(events: classified)
+        } catch let rdError as ReadyDayError {
+            error = rdError
+        } catch {
+            self.error = .unknown(underlying: error.localizedDescription)
+        }
 
         isLoading = false
     }
@@ -54,5 +66,20 @@ final class TimelineViewModel {
 
     func goToPreviousDay() {
         selectDate(selectedDate.adding(days: -1))
+    }
+
+    // MARK: - Private
+
+    private func calculateCalendarLoad(events: [ClassifiedEvent]) -> Double {
+        let countComponent = min(Double(events.count) * 8, 60)
+        let demandWeighted = events.reduce(0.0) { total, event in
+            switch event.demand {
+            case .high: total + 3
+            case .medium: total + 2
+            case .low: total + 1
+            }
+        }
+        let demandComponent = min(demandWeighted / 30 * 40, 40)
+        return min(countComponent + demandComponent, 100)
     }
 }

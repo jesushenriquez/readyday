@@ -9,7 +9,7 @@ final class CalendarRepositoryImpl: CalendarRepository, @unchecked Sendable {
     }
 
     func getEvents(for date: Date) async throws -> [CalendarEvent] {
-        let ekEvents = calendarService.getEvents(for: date, calendarIDs: nil)
+        let ekEvents = try await calendarService.getEvents(for: date, calendarIDs: nil)
         return ekEvents.map { mapToCalendarEvent($0) }
     }
 
@@ -19,7 +19,7 @@ final class CalendarRepositoryImpl: CalendarRepository, @unchecked Sendable {
     }
 
     func findGaps(for date: Date, minDuration: TimeInterval) async throws -> [TimeWindow] {
-        calendarService.findGaps(for: date, minDuration: minDuration)
+        try await calendarService.findGaps(for: date, minDuration: minDuration)
     }
 
     func requestAccess() async throws -> Bool {

@@ -4,6 +4,11 @@ import Foundation
 @MainActor
 final class DashboardViewModel {
 
+    // MARK: - Dependencies
+
+    private let whoopRepository: WhoopRepository
+    private let userRepository: UserRepository
+
     // MARK: - State
 
     private(set) var recoveryTrend: [RecoveryData] = []
@@ -32,6 +37,16 @@ final class DashboardViewModel {
         return scored.reduce(0, +) / scored.count
     }
 
+    // MARK: - Initialization
+
+    init(
+        whoopRepository: WhoopRepository,
+        userRepository: UserRepository
+    ) {
+        self.whoopRepository = whoopRepository
+        self.userRepository = userRepository
+    }
+
     // MARK: - Actions
 
     func loadDashboard() async {
@@ -39,7 +54,21 @@ final class DashboardViewModel {
         isLoading = true
         error = nil
 
-        // TODO: Implement in Sprint 2
+        do {
+            guard let userId = await userRepository.getCurrentUserId() else {
+                throw ReadyDayError.authenticationFailed
+            }
+
+            async let recoveryTask = whoopRepository.getRecoveryTrend(userId: userId, days: selectedPeriod.days)
+            async let sleepTask = whoopRepository.getSleepTrend(userId: userId, days: selectedPeriod.days)
+
+            recoveryTrend = try await recoveryTask
+            sleepTrend = try await sleepTask
+        } catch let rdError as ReadyDayError {
+            error = rdError
+        } catch {
+            self.error = .unknown(underlying: error.localizedDescription)
+        }
 
         isLoading = false
     }

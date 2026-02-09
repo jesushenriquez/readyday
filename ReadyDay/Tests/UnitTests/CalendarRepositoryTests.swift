@@ -209,7 +209,8 @@ final class MockCalendarService: CalendarServiceProtocol, @unchecked Sendable {
         return hasAccessGranted
     }
 
-    func getEvents(for date: Date, calendarIDs: [String]?) -> [EKEvent] {
+    func getEvents(for date: Date, calendarIDs: [String]?) async throws -> [EKEvent] {
+        if shouldThrowError { throw ReadyDayError.calendarAccessDenied }
         return mockEvents
     }
 
@@ -217,7 +218,8 @@ final class MockCalendarService: CalendarServiceProtocol, @unchecked Sendable {
         return mockCalendars
     }
 
-    func findGaps(for date: Date, minDuration: TimeInterval) -> [TimeWindow] {
+    func findGaps(for date: Date, minDuration: TimeInterval) async throws -> [TimeWindow] {
+        if shouldThrowError { throw ReadyDayError.calendarAccessDenied }
         return mockGaps.filter { $0.duration >= minDuration }
     }
 }

@@ -7,17 +7,28 @@ final class BriefingViewModelTests: XCTestCase {
     var sut: BriefingViewModel!
     var mockWhoopRepository: MockWhoopRepository!
     var mockCalendarRepository: MockCalendarRepository!
-    var classifyEventDemandUseCase: ClassifyEventDemandUseCase!
+    var mockUserRepository: MockUserRepository!
 
     override func setUp() {
         super.setUp()
         mockWhoopRepository = MockWhoopRepository()
         mockCalendarRepository = MockCalendarRepository()
-        classifyEventDemandUseCase = ClassifyEventDemandUseCase()
+        mockUserRepository = MockUserRepository()
+
+        let classifyUseCase = ClassifyEventDemandUseCase()
+        let findWorkoutUseCase = FindWorkoutWindowUseCase(calendarRepo: mockCalendarRepository)
+        let generateBriefingUseCase = GenerateBriefingUseCase(
+            whoopRepo: mockWhoopRepository,
+            calendarRepo: mockCalendarRepository,
+            classifyDemand: classifyUseCase,
+            findWorkoutWindow: findWorkoutUseCase
+        )
+        let syncUseCase = SyncWhoopDataUseCase(whoopRepo: mockWhoopRepository)
+
         sut = BriefingViewModel(
-            whoopRepository: mockWhoopRepository,
-            calendarRepository: mockCalendarRepository,
-            classifyEventDemandUseCase: classifyEventDemandUseCase
+            generateBriefingUseCase: generateBriefingUseCase,
+            syncWhoopDataUseCase: syncUseCase,
+            userRepository: mockUserRepository
         )
     }
 
@@ -25,7 +36,7 @@ final class BriefingViewModelTests: XCTestCase {
         sut = nil
         mockWhoopRepository = nil
         mockCalendarRepository = nil
-        classifyEventDemandUseCase = nil
+        mockUserRepository = nil
         super.tearDown()
     }
 
