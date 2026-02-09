@@ -42,7 +42,49 @@ final class CalendarService: CalendarServiceProtocol, @unchecked Sendable {
     }
 
     func findGaps(for date: Date, minDuration: TimeInterval = 3600) -> [TimeWindow] {
-        // TODO: Implement gap finding in Sprint 1
-        []
+        let events = getEvents(for: date)
+
+        // Define working hours (8 AM - 10 PM)
+        let startOfDay = Calendar.current.startOfDay(for: date)
+        guard let workDayStart = Calendar.current.date(bySettingHour: 8, minute: 0, second: 0, of: startOfDay),
+              let workDayEnd = Calendar.current.date(bySettingHour: 22, minute: 0, second: 0, of: startOfDay) else {
+            return []
+        }
+
+        // Filter out all-day events and sort by start time
+        let timedEvents = events
+            .filter { !$0.isAllDay }
+            .sorted { $0.startDate < $1.startDate }
+
+        var gaps: [TimeWindow] = []
+        var currentEnd = workDayStart
+
+        for event in timedEvents {
+            let eventStart = max(event.startDate, workDayStart)
+            let eventEnd = min(event.endDate, workDayEnd)
+
+            // Check if there's a gap before this event
+            if currentEnd < eventStart {
+                let gapDuration = eventStart.timeIntervalSince(currentEnd)
+                if gapDuration >= minDuration {
+                    gaps.append(TimeWindow(start: currentEnd, end: eventStart))
+                }
+            }
+
+            // Update current end if this event extends beyond it
+            if eventEnd > currentEnd {
+                currentEnd = eventEnd
+            }
+        }
+
+        // Check for gap after last event until end of work day
+        if currentEnd < workDayEnd {
+            let gapDuration = workDayEnd.timeIntervalSince(currentEnd)
+            if gapDuration >= minDuration {
+                gaps.append(TimeWindow(start: currentEnd, end: workDayEnd))
+            }
+        }
+
+        return gaps
     }
 }

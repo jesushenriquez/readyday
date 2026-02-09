@@ -7,41 +7,99 @@ struct WhoopConnectView: View {
         VStack(spacing: RDSpacing.xl) {
             Spacer()
 
-            Image(systemName: "link.circle.fill")
+            Image(systemName: "heart.circle.fill")
                 .font(.system(size: 64))
-                .foregroundStyle(Color.rdPrimary)
+                .foregroundStyle(Color.rdAccent)
                 .symbolRenderingMode(.hierarchical)
 
             VStack(spacing: RDSpacing.xxs) {
-                Text("Conecta tu Whoop")
-                    .font(.rdDisplayMedium)
+                Text("Connect Whoop")
+                    .font(.rdDisplayLarge)
                     .foregroundStyle(Color.rdTextPrimary)
 
-                Text("Necesitamos acceso a tu recovery, sueno y strain para generar tu briefing diario.")
-                    .font(.rdBodyMedium)
+                Text("Get personalized insights based on your recovery")
+                    .font(.rdBodyLarge)
                     .foregroundStyle(Color.rdTextSecondary)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, RDSpacing.lg)
             }
 
             Spacer()
 
             VStack(spacing: RDSpacing.sm) {
-                Button("Conectar Whoop") {
+                FeatureRow(
+                    icon: "heart.fill",
+                    title: "Recovery Tracking",
+                    description: "See how your body is recovering each day"
+                )
+
+                FeatureRow(
+                    icon: "moon.fill",
+                    title: "Sleep Analysis",
+                    description: "Understand your sleep quality and patterns"
+                )
+
+                FeatureRow(
+                    icon: "figure.run",
+                    title: "Workout Insights",
+                    description: "Optimize when and how hard to train"
+                )
+            }
+            .padding(.horizontal, RDSpacing.lg)
+
+            Spacer()
+
+            VStack(spacing: RDSpacing.sm) {
+                Button("Connect Whoop") {
                     Task { await viewModel.connectWhoop() }
                 }
                 .buttonStyle(.rdPrimary)
+                .disabled(viewModel.isLoading)
 
-                Button("Omitir por ahora") {
+                Button("Skip for now") {
                     viewModel.skipWhoop()
                 }
-                .buttonStyle(.rdTertiary)
+                .buttonStyle(.rdSecondary)
             }
             .padding(.horizontal, RDSpacing.sm)
+
+            if let error = viewModel.error {
+                Text(error.errorDescription ?? "An error occurred")
+                    .font(.rdCaptionLarge)
+                    .foregroundStyle(Color.rdError)
+                    .padding(.top, RDSpacing.xs)
+            }
 
             Spacer()
         }
         .padding(RDSpacing.sm)
-        .background(Color.rdBackground)
+    }
+}
+
+// MARK: - Feature Row
+
+struct FeatureRow: View {
+    let icon: String
+    let title: String
+    let description: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: RDSpacing.sm) {
+            Image(systemName: icon)
+                .font(.system(size: 24))
+                .foregroundStyle(Color.rdAccent)
+                .frame(width: 32)
+
+            VStack(alignment: .leading, spacing: RDSpacing.xxxs) {
+                Text(title)
+                    .font(.rdBodyMedium)
+                    .foregroundStyle(Color.rdTextPrimary)
+
+                Text(description)
+                    .font(.rdBodySmall)
+                    .foregroundStyle(Color.rdTextSecondary)
+            }
+
+            Spacer()
+        }
     }
 }

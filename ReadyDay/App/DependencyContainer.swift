@@ -4,6 +4,28 @@ import SwiftUI
 @MainActor
 final class DependencyContainer {
 
+    // MARK: - Core Services
+
+    let keychainService: KeychainService
+    let supabaseManager: SupabaseManager
+    let calendarService: CalendarService
+
+    // MARK: - Network Services
+
+    let whoopOAuthManager: WhoopOAuthManager
+    let authManager: AuthManager
+    let whoopAPIClient: WhoopAPIClient
+
+    // MARK: - Repositories
+
+    let userRepository: UserRepository
+    let whoopRepository: WhoopRepository
+    let calendarRepository: CalendarRepository
+
+    // MARK: - Use Cases
+
+    let classifyEventDemandUseCase: ClassifyEventDemandUseCase
+
     // MARK: - ViewModels
 
     let briefingViewModel: BriefingViewModel
@@ -13,23 +35,55 @@ final class DependencyContainer {
     let settingsViewModel: SettingsViewModel
     let workoutFinderViewModel: WorkoutFinderViewModel
 
-    // MARK: - Services
-
-    // TODO: Wire up real implementations in Sprint 1
-    // let whoopRepo: any WhoopRepository
-    // let calendarRepo: any CalendarRepository
-    // let briefingRepo: any BriefingRepository
-    // let userRepo: any UserRepository
-    // let keychainService: KeychainService
-    // let notificationService: NotificationService
-
     init() {
-        // TODO: Initialize services and inject into ViewModels
-        self.briefingViewModel = BriefingViewModel()
-        self.timelineViewModel = TimelineViewModel()
-        self.dashboardViewModel = DashboardViewModel()
-        self.onboardingViewModel = OnboardingViewModel()
-        self.settingsViewModel = SettingsViewModel()
-        self.workoutFinderViewModel = WorkoutFinderViewModel()
+        // Core Services
+        keychainService = KeychainService()
+        supabaseManager = SupabaseManager.shared
+        calendarService = CalendarService()
+
+        // Network Services
+        whoopOAuthManager = WhoopOAuthManager(keychainService: keychainService)
+        whoopAPIClient = WhoopAPIClient(oauthManager: whoopOAuthManager)
+        authManager = AuthManager(
+            supabaseManager: supabaseManager,
+            whoopOAuthManager: whoopOAuthManager
+        )
+
+        // Repositories
+        userRepository = UserRepositoryImpl(
+            supabaseManager: supabaseManager,
+            userDefaults: UserDefaultsService()
+        )
+        whoopRepository = WhoopRepositoryImpl(
+            apiClient: whoopAPIClient,
+            supabaseManager: supabaseManager
+        )
+        calendarRepository = CalendarRepositoryImpl(
+            calendarService: calendarService
+        )
+
+        // Use Cases
+        classifyEventDemandUseCase = ClassifyEventDemandUseCase()
+
+        // ViewModels
+        briefingViewModel = BriefingViewModel(
+            whoopRepository: whoopRepository,
+            calendarRepository: calendarRepository,
+            classifyEventDemandUseCase: classifyEventDemandUseCase
+        )
+        timelineViewModel = TimelineViewModel(
+            calendarRepository: calendarRepository,
+            classifyEventDemandUseCase: classifyEventDemandUseCase
+        )
+        dashboardViewModel = DashboardViewModel()
+        onboardingViewModel = OnboardingViewModel(
+            authManager: authManager,
+            whoopOAuthManager: whoopOAuthManager,
+            calendarService: calendarService,
+            userRepository: userRepository,
+            whoopRepository: whoopRepository
+        )
+        settingsViewModel = SettingsViewModel()
+        workoutFinderViewModel = WorkoutFinderViewModel()
     }
 }

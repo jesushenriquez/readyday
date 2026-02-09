@@ -1,8 +1,24 @@
 import Foundation
 
+// MARK: - Notification
+
+extension Notification.Name {
+    static let onboardingCompleted = Notification.Name("com.readyday.onboardingCompleted")
+}
+
+// MARK: - ViewModel
+
 @Observable
 @MainActor
 final class OnboardingViewModel {
+
+    // MARK: - Dependencies
+
+    private let authManager: AuthManager
+    private let whoopOAuthManager: WhoopOAuthManager
+    private let calendarService: CalendarServiceProtocol
+    private let userRepository: UserRepository
+    private let whoopRepository: WhoopRepository
 
     // MARK: - State
 
@@ -19,26 +35,111 @@ final class OnboardingViewModel {
         case ready
     }
 
+    // MARK: - Initialization
+
+    init(
+        authManager: AuthManager,
+        whoopOAuthManager: WhoopOAuthManager,
+        calendarService: CalendarServiceProtocol,
+        userRepository: UserRepository,
+        whoopRepository: WhoopRepository
+    ) {
+        self.authManager = authManager
+        self.whoopOAuthManager = whoopOAuthManager
+        self.calendarService = calendarService
+        self.userRepository = userRepository
+        self.whoopRepository = whoopRepository
+    }
+
     // MARK: - Actions
 
     func signInWithApple() async {
-        // TODO: Implement Apple Sign In in Sprint 1
+        isLoading = true
+        error = nil
+
+        do {
+            try await authManager.signInWithApple()
+            advance()
+        } catch {
+            print("[Onboarding] Apple Sign In error: \(error)")
+            self.error = error as? ReadyDayError ?? .appleSignInFailed
+        }
+
+        isLoading = false
     }
 
+    #if DEBUG
+    func devBypassSignIn() {
+        advance()
+    }
+    #endif
+
     func connectWhoop() async {
-        // TODO: Implement Whoop OAuth in Sprint 1
+        isLoading = true
+        error = nil
+
+        do {
+            try await whoopOAuthManager.startOAuthFlow()
+            isWhoopConnected = true
+            advance()
+        } catch {
+            self.error = error as? ReadyDayError ?? .whoopOAuthFailed(underlying: error.localizedDescription)
+        }
+
+        isLoading = false
     }
 
     func skipWhoop() {
-        currentStep = .calendarAccess
+        isWhoopConnected = false
+        advance()
     }
 
     func requestCalendarAccess() async {
-        // TODO: Implement calendar permission request in Sprint 1
+        isLoading = true
+        error = nil
+
+        do {
+            let granted = try await calendarService.requestAccess()
+            isCalendarGranted = granted
+
+            if granted {
+                advance()
+            } else {
+                self.error = .calendarAccessDenied
+            }
+        } catch {
+            self.error = .calendarAccessDenied
+        }
+
+        isLoading = false
+    }
+
+    func skipCalendar() {
+        isCalendarGranted = false
+        advance()
     }
 
     func completeOnboarding() async {
-        // TODO: Mark onboarding as completed
+        isLoading = true
+
+        do {
+            // Mark onboarding as completed
+            try await userRepository.setOnboardingCompleted()
+
+            // If Whoop is connected, trigger initial data sync
+            if isWhoopConnected, let userId = await userRepository.getCurrentUserId() {
+                Task {
+                    try? await whoopRepository.syncData(userId: userId)
+                }
+            }
+
+            // Notify ContentView to transition
+            NotificationCenter.default.post(name: .onboardingCompleted, object: nil)
+        } catch {
+            self.error = .unknown(underlying: error.localizedDescription)
+        }
+
+        isLoading = false
     }
 
     func advance() {

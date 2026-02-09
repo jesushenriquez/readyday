@@ -4,6 +4,12 @@ import Foundation
 @MainActor
 final class BriefingViewModel {
 
+    // MARK: - Dependencies
+
+    private let whoopRepository: WhoopRepository
+    private let calendarRepository: CalendarRepository
+    private let classifyEventDemandUseCase: ClassifyEventDemandUseCase
+
     // MARK: - State
 
     private(set) var briefing: DayBriefing?
@@ -18,6 +24,18 @@ final class BriefingViewModel {
     var workoutWindows: [TimeWindow] { briefing?.suggestedWorkoutWindows ?? [] }
     var events: [ClassifiedEvent] { briefing?.events ?? [] }
     var calendarLoadScore: Double { briefing?.calendarLoadScore ?? 0 }
+
+    // MARK: - Initialization
+
+    init(
+        whoopRepository: WhoopRepository,
+        calendarRepository: CalendarRepository,
+        classifyEventDemandUseCase: ClassifyEventDemandUseCase
+    ) {
+        self.whoopRepository = whoopRepository
+        self.calendarRepository = calendarRepository
+        self.classifyEventDemandUseCase = classifyEventDemandUseCase
+    }
 
     // MARK: - Actions
 

@@ -15,6 +15,7 @@ struct ReadyDayApp: App {
 struct ContentView: View {
     @Environment(DependencyContainer.self) private var container
     @State private var selectedTab: Tab = .today
+    @State private var showOnboarding: Bool
 
     enum Tab: String {
         case today
@@ -22,7 +23,24 @@ struct ContentView: View {
         case trends
     }
 
+    init() {
+        // Check if onboarding is completed
+        let completed = UserDefaults.standard.bool(forKey: "com.readyday.onboardingCompleted")
+        _showOnboarding = State(initialValue: !completed)
+    }
+
     var body: some View {
+        if showOnboarding {
+            OnboardingView(viewModel: container.onboardingViewModel)
+                .onReceive(NotificationCenter.default.publisher(for: .onboardingCompleted)) { _ in
+                    showOnboarding = false
+                }
+        } else {
+            mainTabView
+        }
+    }
+
+    private var mainTabView: some View {
         TabView(selection: $selectedTab) {
             Tab.today.tab {
                 NavigationStack {

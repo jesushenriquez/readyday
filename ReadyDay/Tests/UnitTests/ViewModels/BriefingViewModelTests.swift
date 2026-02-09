@@ -4,16 +4,34 @@ import XCTest
 @MainActor
 final class BriefingViewModelTests: XCTestCase {
 
-    // TODO: Add tests in Sprint 1
-    // - Test initial state is empty
-    // - Test loading sets isLoading true
-    // - Test successful load populates briefing
-    // - Test error handling sets error
+    var sut: BriefingViewModel!
+    var mockWhoopRepository: MockWhoopRepository!
+    var mockCalendarRepository: MockCalendarRepository!
+    var classifyEventDemandUseCase: ClassifyEventDemandUseCase!
+
+    override func setUp() {
+        super.setUp()
+        mockWhoopRepository = MockWhoopRepository()
+        mockCalendarRepository = MockCalendarRepository()
+        classifyEventDemandUseCase = ClassifyEventDemandUseCase()
+        sut = BriefingViewModel(
+            whoopRepository: mockWhoopRepository,
+            calendarRepository: mockCalendarRepository,
+            classifyEventDemandUseCase: classifyEventDemandUseCase
+        )
+    }
+
+    override func tearDown() {
+        sut = nil
+        mockWhoopRepository = nil
+        mockCalendarRepository = nil
+        classifyEventDemandUseCase = nil
+        super.tearDown()
+    }
 
     func testInitialState() {
-        let viewModel = BriefingViewModel()
-        XCTAssertNil(viewModel.briefing)
-        XCTAssertFalse(viewModel.isLoading)
-        XCTAssertNil(viewModel.error)
+        XCTAssertNil(sut.briefing)
+        XCTAssertFalse(sut.isLoading)
+        XCTAssertNil(sut.error)
     }
 }

@@ -9,21 +9,21 @@ struct CalendarPermissionView: View {
 
             Image(systemName: "calendar.badge.checkmark")
                 .font(.system(size: 64))
-                .foregroundStyle(Color.rdPrimary)
+                .foregroundStyle(Color.rdAccent)
                 .symbolRenderingMode(.hierarchical)
 
             VStack(spacing: RDSpacing.xxs) {
-                Text("Accede a tu calendario")
-                    .font(.rdDisplayMedium)
+                Text("Calendar Access")
+                    .font(.rdDisplayLarge)
                     .foregroundStyle(Color.rdTextPrimary)
 
-                Text("Leemos tu agenda para entender la demanda de tu dia y darte recomendaciones inteligentes.")
-                    .font(.rdBodyMedium)
+                Text("We analyze your schedule to give you smart recommendations")
+                    .font(.rdBodyLarge)
                     .foregroundStyle(Color.rdTextSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, RDSpacing.lg)
 
-                Text("Solo lectura. Nunca modificamos tu calendario.")
+                Text("Read-only. We never modify your calendar.")
                     .font(.rdCaptionLarge)
                     .foregroundStyle(Color.rdTextTertiary)
                     .padding(.top, RDSpacing.xxs)
@@ -31,15 +31,81 @@ struct CalendarPermissionView: View {
 
             Spacer()
 
-            Button("Permitir acceso") {
-                Task { await viewModel.requestCalendarAccess() }
+            VStack(spacing: RDSpacing.sm) {
+                BenefitRow(
+                    icon: "sparkles",
+                    title: "Smart Scheduling",
+                    description: "Find the best times for workouts and recovery"
+                )
+
+                BenefitRow(
+                    icon: "clock.fill",
+                    title: "Time Management",
+                    description: "Identify gaps and optimize your day"
+                )
+
+                BenefitRow(
+                    icon: "chart.line.uptrend.xyaxis",
+                    title: "Load Analysis",
+                    description: "Understand how your schedule affects recovery"
+                )
             }
-            .buttonStyle(.rdPrimary)
+            .padding(.horizontal, RDSpacing.lg)
+
+            Spacer()
+
+            VStack(spacing: RDSpacing.sm) {
+                Button("Grant Access") {
+                    Task { await viewModel.requestCalendarAccess() }
+                }
+                .buttonStyle(.rdPrimary)
+                .disabled(viewModel.isLoading)
+
+                Button("Skip for now") {
+                    viewModel.skipCalendar()
+                }
+                .buttonStyle(.rdSecondary)
+            }
             .padding(.horizontal, RDSpacing.sm)
+
+            if let error = viewModel.error {
+                Text(error.errorDescription ?? "An error occurred")
+                    .font(.rdCaptionLarge)
+                    .foregroundStyle(Color.rdError)
+                    .padding(.top, RDSpacing.xs)
+            }
 
             Spacer()
         }
         .padding(RDSpacing.sm)
-        .background(Color.rdBackground)
+    }
+}
+
+// MARK: - Benefit Row
+
+struct BenefitRow: View {
+    let icon: String
+    let title: String
+    let description: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: RDSpacing.sm) {
+            Image(systemName: icon)
+                .font(.system(size: 20))
+                .foregroundStyle(Color.rdAccent)
+                .frame(width: 28)
+
+            VStack(alignment: .leading, spacing: RDSpacing.xxxs) {
+                Text(title)
+                    .font(.rdBodyMedium)
+                    .foregroundStyle(Color.rdTextPrimary)
+
+                Text(description)
+                    .font(.rdBodySmall)
+                    .foregroundStyle(Color.rdTextSecondary)
+            }
+
+            Spacer()
+        }
     }
 }

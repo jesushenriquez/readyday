@@ -4,6 +4,7 @@ enum ReadyDayError: LocalizedError, Sendable {
 
     // Auth
     case appleSignInFailed
+    case authenticationFailed
     case whoopOAuthFailed(underlying: String)
     case whoopTokenExpired
     case whoopTokenRefreshFailed
@@ -17,6 +18,8 @@ enum ReadyDayError: LocalizedError, Sendable {
 
     // Network
     case networkUnavailable
+    case networkError
+    case invalidURL
     case serverError(statusCode: Int)
     case rateLimited(retryAfter: TimeInterval)
     case decodingError(underlying: String)
@@ -28,6 +31,8 @@ enum ReadyDayError: LocalizedError, Sendable {
         switch self {
         case .appleSignInFailed:
             "Apple Sign In failed. Please try again."
+        case .authenticationFailed:
+            "Authentication failed. Please try again."
         case .whoopOAuthFailed(let detail):
             "Whoop connection failed: \(detail)"
         case .whoopTokenExpired:
@@ -46,6 +51,10 @@ enum ReadyDayError: LocalizedError, Sendable {
             "No sleep data available yet."
         case .networkUnavailable:
             "No internet connection. Showing cached data."
+        case .networkError:
+            "Network error occurred. Please try again."
+        case .invalidURL:
+            "Invalid URL. Please check configuration."
         case .serverError(let code):
             "Server error (\(code)). Please try again later."
         case .rateLimited(let retryAfter):

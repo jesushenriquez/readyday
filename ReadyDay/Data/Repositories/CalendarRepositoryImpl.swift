@@ -1,4 +1,5 @@
 import Foundation
+import EventKit
 
 final class CalendarRepositoryImpl: CalendarRepository, @unchecked Sendable {
     private let calendarService: CalendarServiceProtocol
@@ -8,21 +9,35 @@ final class CalendarRepositoryImpl: CalendarRepository, @unchecked Sendable {
     }
 
     func getEvents(for date: Date) async throws -> [CalendarEvent] {
-        // TODO: Implement in Sprint 1 — map EKEvent to CalendarEvent
-        []
+        let ekEvents = calendarService.getEvents(for: date, calendarIDs: nil)
+        return ekEvents.map { mapToCalendarEvent($0) }
     }
 
     func getAvailableCalendars() async -> [(id: String, name: String)] {
-        // TODO: Implement in Sprint 1
-        []
+        let calendars = calendarService.getCalendars()
+        return calendars.map { (id: $0.calendarIdentifier, name: $0.title) }
     }
 
     func findGaps(for date: Date, minDuration: TimeInterval) async throws -> [TimeWindow] {
-        // TODO: Implement in Sprint 1
-        []
+        calendarService.findGaps(for: date, minDuration: minDuration)
     }
 
     func requestAccess() async throws -> Bool {
         try await calendarService.requestAccess()
+    }
+
+    // MARK: - Private Helpers
+
+    private func mapToCalendarEvent(_ ekEvent: EKEvent) -> CalendarEvent {
+        CalendarEvent(
+            id: ekEvent.eventIdentifier,
+            title: ekEvent.title ?? "Untitled",
+            startDate: ekEvent.startDate,
+            endDate: ekEvent.endDate,
+            location: ekEvent.location,
+            attendeeCount: ekEvent.attendees?.count ?? 0,
+            calendarName: ekEvent.calendar?.title,
+            isAllDay: ekEvent.isAllDay
+        )
     }
 }

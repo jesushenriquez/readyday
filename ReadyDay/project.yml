@@ -21,6 +21,10 @@ configs:
   Debug: debug
   Release: release
 
+configFiles:
+  Debug: Config/ReadyDay-Dev.xcconfig
+  Release: Config/ReadyDay-Prod.xcconfig
+
 targets:
   ReadyDay:
     type: application
@@ -32,9 +36,15 @@ targets:
       - path: Data
       - path: Presentation
       - path: Resources
+    entitlements:
+      path: ReadyDay.entitlements
+      properties:
+        com.apple.developer.applesignin:
+          - Default
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.readyday.app
+        CODE_SIGN_STYLE: Automatic
         INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription: "ReadyDay reads your calendar to analyze your day's energy demands and suggest optimal scheduling."
         INFOPLIST_KEY_NSCalendarsUsageDescription: "ReadyDay reads your calendar to analyze your day's energy demands and suggest optimal scheduling."
         INFOPLIST_KEY_UILaunchScreen_Generation: true
@@ -71,6 +81,8 @@ targets:
         POSTHOG_API_KEY: "$(POSTHOG_API_KEY)"
         POSTHOG_HOST: "$(POSTHOG_HOST)"
         ENVIRONMENT: "$(ENVIRONMENT)"
+        NSCalendarsFullAccessUsageDescription: "ReadyDay reads your calendar to analyze your day's energy demands and suggest optimal scheduling."
+        NSCalendarsUsageDescription: "ReadyDay reads your calendar to analyze your day's energy demands and suggest optimal scheduling."
     dependencies:
       - package: Supabase
         product: Supabase

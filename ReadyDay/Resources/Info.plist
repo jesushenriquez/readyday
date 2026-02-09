@@ -31,6 +31,10 @@
 	<string>1</string>
 	<key>ENVIRONMENT</key>
 	<string>$(ENVIRONMENT)</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>ReadyDay reads your calendar to analyze your day's energy demands and suggest optimal scheduling.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>ReadyDay reads your calendar to analyze your day's energy demands and suggest optimal scheduling.</string>
 	<key>POSTHOG_API_KEY</key>
 	<string>$(POSTHOG_API_KEY)</string>
 	<key>POSTHOG_HOST</key>
@@ -39,13 +43,13 @@
 	<string>$(SUPABASE_ANON_KEY)</string>
 	<key>SUPABASE_URL</key>
 	<string>$(SUPABASE_URL)</string>
+	<key>UILaunchScreen</key>
+	<dict/>
 	<key>WHOOP_CLIENT_ID</key>
 	<string>$(WHOOP_CLIENT_ID)</string>
 	<key>WHOOP_CLIENT_SECRET</key>
 	<string>$(WHOOP_CLIENT_SECRET)</string>
 	<key>WHOOP_REDIRECT_URI</key>
 	<string>$(WHOOP_REDIRECT_URI)</string>
-	<key>UILaunchScreen</key>
-	<dict/>
 </dict>
 </plist>

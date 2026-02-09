@@ -33,4 +33,6 @@ extension Color {
 
     static let rdBorder = Color("Border")
     static let rdShadow = Color.black.opacity(0.08)
+    static let rdError = Color.red
+    static let rdSuccess = Color.green
 }

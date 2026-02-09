@@ -4,6 +4,11 @@ import Foundation
 @MainActor
 final class TimelineViewModel {
 
+    // MARK: - Dependencies
+
+    private let calendarRepository: CalendarRepository
+    private let classifyEventDemandUseCase: ClassifyEventDemandUseCase
+
     // MARK: - State
 
     private(set) var events: [ClassifiedEvent] = []
@@ -15,6 +20,16 @@ final class TimelineViewModel {
 
     var hasError: Bool { error != nil }
     var highDemandCount: Int { events.filter { $0.demand == .high }.count }
+
+    // MARK: - Initialization
+
+    init(
+        calendarRepository: CalendarRepository,
+        classifyEventDemandUseCase: ClassifyEventDemandUseCase
+    ) {
+        self.calendarRepository = calendarRepository
+        self.classifyEventDemandUseCase = classifyEventDemandUseCase
+    }
 
     // MARK: - Actions
 
